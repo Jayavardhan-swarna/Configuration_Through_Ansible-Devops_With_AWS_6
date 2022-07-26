@@ -1,0 +1,154 @@
+					Ansible Main Server
+					===============
+sudo -i
+sudo amazon-linux-extras install ansible2 -y     =>   To install ansible package
+yum install git python python-pip python-level openssl -y   => To install python
+vim /etc/ansible/hosts
+(under EX 1)	[dev]
+		private ip of node 1
+		private ip of node 2
+	save it
+vim /etc/ansible/ansible.cfg 
+		uncomment inventory
+		uncomment sudo_user
+	save it
+ 		
+
+				In all Servers
+				==========
+useradd ansible
+passwd ansible 
+visudo
+       change ansible ALL=(ALL)	NOPASSWD:ALL
+vim /etc/ssh/sshd_config
+Change PasswordAuthentication (from No to Yes)
+systemctl restart sshd
+systemctl status sshd
+su - ansible   => To change from default user to ansible user
+				Ansible Main Server
+				===============
+sudo ssh-keygen     => to create keys
+	enter
+	enter
+	enter
+sudo ssh-copy-id ansible@localhost   => To send private key to communicate with other servers
+	yes
+	babbynani (pwd)
+ssh ansible@localhost
+	yes
+	babbynani (pwd)
+exit
+				To connect to node 1
+				===============
+sudo ssh-copy-id ansible@private ip of node 1
+	yes
+	babbynani (pwd)
+sudo ssh ansible@private ip of node 1
+	yes
+	babbynani (pwd)
+exit
+				To connect to node 2
+				===============
+ssh-copy-id ansible@private ip of node 2
+	yes
+	babbynani (pwd)
+ssh ansible@private ip of node 2
+	yes
+	babbynani (pwd)
+exit
+
+
+				Ansible Add Hoc commands (Ansible sever)
+				=====================
+
+ansible all --list-hosts     =>   To Know the private ip which we configured in ansible.cfg
+ansible dev[0] -a "ls"     =>   To know the list of 0 indexed server
+"IF ERROR RISES OVERWRITE THE SSH KEY BY USING THE FOLLOWING COMMANDS 
+
+ssh-keygen
+	enter
+	enter
+	enter
+ssh-copy-id ansible@localhost
+ 	babbynani(pwd)
+
+ssh ansible@localhost
+ 	babbynani(pwd)
+
+				node1
+				=====
+
+ssh-copy-id ansible@private ip of node 1  
+ 	babbynani(pwd)
+
+ssh ansible@private ip of node 1 
+ 	babbynani(pwd)
+
+				node2
+				=====
+
+ssh-copy-id ansible@lprivate ip of node2
+ 	babbynani(pwd)
+
+ssh ansible@lprivate ip of node2
+ 	babbynani(pwd)
+
+
+
+ansible dev[0] -a "ls"    =>  To know the list of 0 indexed server
+ansible dev -a "touch f1"
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+==================================================================
+
+
+
+
+- hosts: target
+  user: ansible
+  become: yes
+  connection: ssh
+  tasks:
+          - name: Installing DOCKER GIT TREE HTTPd in redhat
+            command: yum install docker git tree httpd -y
+            when: ansible_os_family == "RedHat"
+  tasks:
+          - name: Installing Java Maven and jenkins in ubuntu
+            action: apt name=openjdk-11-jdk state=present
+            when: ansible_os_family == "Debian"
+          - name: Fetching the jenkins apt repository key
+            apt_key: url=https://pkg.jenkins.io/debian-stable/jenkins.io.key state=present
+            when: ansible_os_family == "Debian"
+          - name: Repository configuration
+            apt_repository: repo='deb https://pkg.jenkins.io/debian-stable binary/' state=present
+            when: ansible_os_family == "Debian"
+          - name: Jenkins Installation
+            apt: name=jenkins update_cache=yes
+            when: ansible_os_family == "Debian"
+          - name: Jenkins Running
+            service: name=jenkins state=started
+            when: ansible_os_family == "Debian"
+          - name: Installation of maven
+            apt:
+              name: "{{ packages }}"
+              state: present
+            vars:
+               packages:
+                 - maven
+            when: ansible_os_family == "Debian"
+            
